@@ -1,0 +1,19 @@
+name: Test AI Changelog
+on: [push] # 每次推送代码都触发
+
+jobs:
+  test_bot:
+    runs-on: ubuntu-latest
+    name: 测试 AI 生成日志
+    steps:
+      - name: 📥 下载代码
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # 关键！必须下载完整历史，不然读不到 commit
+
+      - name: 🤖 召唤你的 AI Action
+        uses: ./ # "./" 表示使用当前仓库里的 Action
+        with:
+          api_key: ${{ secrets.DOUBAO_API_KEY }}      # 读取刚才存的密钥
+          endpoint_id: ${{ secrets.DOUBAO_ENDPOINT_ID }} # 读取刚才存的 ID
+          language: 'Chinese'                         # 强制输出中文
