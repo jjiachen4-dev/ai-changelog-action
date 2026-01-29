@@ -1,0 +1,26 @@
+name: 'AI Smart Changelog'
+description: 'Uses AI to turn boring git commits into humorous release notes.'
+author: 'YourName'
+
+# 这里定义别人使用你的工具时，需要填什么参数
+inputs:
+  api_key:
+    description: 'Doubao/OpenAI API Key'
+    required: true
+  endpoint_id:
+    description: 'Model Endpoint ID'
+    required: true
+  language:
+    description: 'Output language (e.g., Chinese, English)'
+    required: false
+    default: 'Chinese'
+
+# 这里定义输出什么
+outputs:
+  changelog:
+    description: 'The generated changelog text'
+
+# 这里告诉 GitHub 怎么运行你的代码
+runs:
+  using: 'node20'
+  main: 'dist/index.js' # 注意：我们一会儿要把代码打包到 dist 文件夹里

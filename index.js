@@ -1,65 +1,66 @@
+const core = require('@actions/core'); // 引入 GitHub 官方工具
 const OpenAI = require("openai");
-const simpleGit = require("simple-git"); // 引入 Git 工具
-const { subDays, format } = require("date-fns"); // 引入日期工具
-
-// ================= 配置区域 =================
-const API_KEY = "0290aaec-839b-416f-83f0-f9714a4601dd"; 
-const ENDPOINT_ID = "ep-m-20251120232505-q9vz8"; 
-// ===========================================
-
-const client = new OpenAI({
-    apiKey: API_KEY,
-    baseURL: "https://ark.cn-beijing.volces.com/api/v3",
-});
-
-const git = simpleGit(); // 初始化 Git
+const simpleGit = require("simple-git");
+const { subDays, format } = require("date-fns");
 
 async function run() {
     try {
-        console.log("🕵️ 正在扫描当前项目的 Git 提交记录...");
+        console.log("🚀 AI Changelog Action 启动...");
 
-        // 1. 获取最近 7 天的提交记录 (模拟真实场景，通常我们只关心最近的更新)
+        // 1. 从外部获取输入参数 (不再写死！)
+        // 用户在他们的 workflow 文件里填什么，这里就读到什么
+        const API_KEY = core.getInput('api_key', { required: true });
+        const ENDPOINT_ID = core.getInput('endpoint_id', { required: true });
+        const LANGUAGE = core.getInput('language') || 'Chinese'; // 默认中文
+
+        // 2. 初始化客户端
+        const client = new OpenAI({
+            apiKey: API_KEY,
+            baseURL: "https://ark.cn-beijing.volces.com/api/v3",
+        });
+
+        const git = simpleGit();
+
+        // 3. 获取 Git 记录
         const dateSince = format(subDays(new Date(), 7), 'yyyy-MM-dd');
         const log = await git.log({ '--since': dateSince });
 
-        // 如果最近没提交，直接结束
         if (log.total === 0) {
-            console.log("😅 最近 7 天好像没有提交代码哦，快去写点 Bug 吧！");
+            console.log("😅 最近没有提交记录，跳过生成。");
             return;
         }
 
-        // 把提交记录整理成纯文本列表
-        // 格式：[哈希简写] - 提交信息
         const commitMessages = log.all.map(c => `- ${c.message}`).join("\n");
+        console.log(`✅ 捕获到 ${log.total} 条提交，目标语言：${LANGUAGE}`);
 
-        console.log(`✅ 找到了 ${log.total} 条提交记录，正在召唤 AI 进行润色...\n`);
-        
-        // 2. 发送给 AI
+        // 4. 召唤 AI
         const completion = await client.chat.completions.create({
             model: ENDPOINT_ID,
             messages: [
                 {
                     role: "system",
-                    content: `你是一个SaaS产品经理。你的任务是将程序员的 git commit log 转化为一份幽默、易读且吸引用户的 Release Notes。
-                    
-                    【严格规则】：
-                    1. 只保留有用户价值的功能点 (feat) 和修复 (fix)。
-                    2. 必须忽略无意义的像 'update', 'merge', 'chore', 'wip' 这种提交。
-                    3. 如果提交信息里没有值得写的内容，就幽默地回复“本次主要是底层优化，为了更远的未来积蓄力量”。
-                    4. 语气要像老朋友，活泼一点。`
+                    content: `你是一个资深 SaaS 产品经理。请将 git commit log 转化为 ${LANGUAGE} (语言) 的 Release Notes。
+                    风格要求：幽默、风趣、口语化。
+                    规则：
+                    1. 忽略 chore, wip, test 等无意义提交。
+                    2. 重点突出 feat (✨) 和 fix (🐛)。
+                    3. 即使输入是英文，也必须输出为 ${LANGUAGE}。`
                 },
                 {
                     role: "user",
-                    content: `这是最近 7 天的提交记录，请帮我写一份更新日志：\n${commitMessages}`
+                    content: `提交记录如下：\n${commitMessages}`
                 }
             ],
         });
 
-        console.log("\n====== 🎉 你的专属更新日志 ======\n");
-        console.log(completion.choices[0].message.content);
+        const result = completion.choices[0].message.content;
+        
+        // 5. 输出结果，让 GitHub Action 的下一步能用到这个结果
+        console.log("\n====== 生成结果 ======\n" + result);
+        core.setOutput("changelog", result); // 把结果暴露出去
 
     } catch (error) {
-        console.error("❌ 出错了:", error.message);
+        core.setFailed(`❌ 运行失败: ${error.message}`);
     }
 }
 

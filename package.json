@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@actions/core": "^1.10.0",
     "date-fns": "^4.1.0",
     "openai": "^6.17.0",
     "simple-git": "^3.30.0"
