@@ -64237,6 +64237,7 @@ async function run() {
         const client = new OpenAI({
             apiKey: API_KEY,
             baseURL: "https://ark.cn-beijing.volces.com/api/v3",
+            timeout: 60 * 1000,// <--- 新增这一行！设置超时为 60 秒 (默认可能是 10秒)
         });
 
         const git = simpleGit();
