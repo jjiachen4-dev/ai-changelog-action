@@ -177,7 +177,7 @@ While the open-source version is great, we are building a **Pro Version** for te
 > 💡 **想要早鸟优惠吗？**
 > 我们会为首批注册用户提供 **50% OFF** 的终身折扣。
 > 
-> [**👉 点击这里加入候补名单 (Join Waitlist)**](把这里换成你的Issue链接) 
+> [**👉 点击这里加入候补名单 (Join Waitlist)**](https://github.com/jjiachen4-dev/ai-changelog-action/issues/1) 
 > *(只需在 Issue 下方评论 "Interested" 即可占位)*
 
 ---
